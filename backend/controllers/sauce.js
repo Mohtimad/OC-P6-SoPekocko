@@ -1,5 +1,5 @@
 const fs = require('fs');
-const Sauce = require('../models/sauce');
+const Sauce = require('../models/Sauce');
 
 exports.getSauces = (req, res, next) => {
   Sauce.find()
@@ -31,16 +31,20 @@ exports.modifySauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
   .then(sauce => {
     const filename = sauce.imageUrl.split('/images/')[1];
-    fs.unlink(`images/${filename}`, () => {
-      const sauceObject = req.file ?
+    const sauceObject = req.file ?
       {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
       } : { ...req.body };
+      if (sauceObject.imageUrl) {
+        fs.unlink(`images/${filename}`, (err) => {
+          if (err) throw err;
+            console.log(`successfully deleted images/${filename}`);
+        });
+      }
     Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
-    });
   })
   .catch(error => res.status(500).json({ error }));
 };
@@ -83,8 +87,9 @@ exports.likeOneSauce = (req, res, next) => {
               sauce.likes--
             }
           }
-        break;
+          break;
       }
+      console.log(sauce)
       Sauce.updateOne({ _id: req.params.id }, { likes: sauce.likes,
                                                   dislikes: sauce.dislikes,
                                                   usersDisliked: sauce.usersDisliked,
