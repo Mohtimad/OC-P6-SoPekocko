@@ -1,5 +1,25 @@
 const fs = require('fs');
 const Sauce = require('../models/Sauce');
+const jwt = require('jsonwebtoken');
+const tokenConfig = require('../token-config')
+
+// function for request POST & PUT
+function checkIfAuthor(authorization, authorUserId) {
+  try {
+    const token = authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, tokenConfig.secretTokenKey);
+    const userId = decodedToken.userId;
+    if (authorUserId !== userId) {
+      throw 'Invalid user ID';
+    } else {
+      console.log("user " + userId + " authorization ok")
+    }
+  } catch {
+    res.status(401).json({
+      error: 'Invalid request!'
+    });
+  }
+}
 
 exports.getSauces = (req, res, next) => {
   Sauce.find()
@@ -23,13 +43,14 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   });
   sauce.save()
-    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+    .then(() => res.status(201).json({ message: 'Registered object!'}))
     .catch(error => res.status(400).json({ error }));
 };
 
 exports.modifySauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
   .then(sauce => {
+    checkIfAuthor(req.headers.authorization, sauce.userId);
     const filename = sauce.imageUrl.split('/images/')[1];
     const sauceObject = req.file ?
       {
@@ -39,11 +60,14 @@ exports.modifySauce = (req, res, next) => {
       if (sauceObject.imageUrl) {
         fs.unlink(`images/${filename}`, (err) => {
           if (err) throw err;
-            console.log(`successfully deleted images/${filename}`);
+          console.log(`deleted images/${filename}`);
         });
       }
     Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-      .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+      .then(() => {
+        console.log('Item edited by userId ' + req.body.userId)
+        res.status(200).json({ message: 'Item changed!'})
+      })
       .catch(error => res.status(400).json({ error }));
   })
   .catch(error => res.status(500).json({ error }));
@@ -52,10 +76,15 @@ exports.modifySauce = (req, res, next) => {
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then(sauce => {
+    checkIfAuthor(req.headers.authorization, sauce.userId);
       const filename = sauce.imageUrl.split('/images/')[1];
       fs.unlink(`images/${filename}`, () => {
+        console.log(`deleted images/${filename}`);
         Sauce.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+          .then(() => {
+            console.log('Item deleted by userId ' + req.body.userId)
+            res.status(200).json({ message: 'Item deleted!'})
+          })
           .catch(error => res.status(400).json({ error }));
       });
     })
@@ -89,14 +118,14 @@ exports.likeOneSauce = (req, res, next) => {
           }
           break;
       }
-      console.log(sauce)
+      console.log("item " + req.params.id + " liked/disliked by " + req.body.userId)
       Sauce.updateOne({ _id: req.params.id }, { likes: sauce.likes,
                                                   dislikes: sauce.dislikes,
                                                   usersDisliked: sauce.usersDisliked,
                                                   usersLiked: sauce.usersLiked,
                                                   _id: req.params.id})
         
-        .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+        .then(() => res.status(200).json({ message: 'validated vote !'}))
         .catch(error => res.status(400).json({ error }));
       })
     .catch(error => res.status(404).json({ error }));
