@@ -8,7 +8,7 @@ router.post('/signup', [
     body('email', 'Your email is not valid').not().isEmpty().isEmail().normalizeEmail(),
     body('password', 'Your password is not valid').not().isEmpty().isLength({min: 6}).matches(/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/),
   ],
-  function (req, res) {
+  function (req, res, next) {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
