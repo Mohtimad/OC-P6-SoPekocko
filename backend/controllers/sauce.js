@@ -3,7 +3,10 @@ const Sauce = require('../models/Sauce');
 const jwt = require('jsonwebtoken');
 const tokenConfig = require('../token-config')
 
-// function for request POST & PUT
+const minHeat = 1;
+const maxHeat = 10;
+
+// call by createSauce() & modifySauce()
 function checkIfAuthor(authorization, authorUserId) {
   try {
     const token = authorization.split(' ')[1];
@@ -38,6 +41,7 @@ exports.createSauce = (req, res, next) => {
   delete sauceObject._id;
   sauceObject.likes = 0;
   sauceObject.dislikes = 0;
+  sauceObject.heat = !sauceObject.heat || sauceObject.heat < minHeat || sauceObject.heat > maxHeat ? 1 : sauceObject.heat;
   const sauce = new Sauce({
     ...sauceObject,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
@@ -57,6 +61,7 @@ exports.modifySauce = (req, res, next) => {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
       } : { ...req.body };
+      sauceObject.heat = !sauceObject.heat || sauceObject.heat < minHeat || sauceObject.heat > maxHeat ? 1 : sauceObject.heat;
       if (sauceObject.imageUrl) {
         fs.unlink(`images/${filename}`, (err) => {
           if (err) throw err;
