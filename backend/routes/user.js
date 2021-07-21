@@ -17,6 +17,10 @@ router.post('/signup', [
       next();
   });
 
+router.post('/login',
+  [body('email').normalizeEmail()], (req, res, next) => next()
+);
+
 router.post('/signup', userCtrl.signup);
 router.post('/login', userCtrl.login);
 
