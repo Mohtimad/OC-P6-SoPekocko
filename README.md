@@ -1,4 +1,4 @@
-# Openclassrooms P6 - So Pekocko
+# So Pekocko - Projet 06
 Pour faire fonctionner le projet, vous devez installer :
 
 NodeJS en version 12.14 ou 14.0 
