@@ -1,3 +1,5 @@
+const linkMangoDB = "";
+
 const express = require('express');
 const rateLimit = require("express-rate-limit");
 const mongoose = require('mongoose');
@@ -5,7 +7,7 @@ const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const path = require('path');
 
-mongoose.connect('mongodb+srv://users:users@cluster0.rregj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+mongoose.connect(linkMangoDB,
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connection to MongoDB successful!'))
@@ -22,7 +24,7 @@ app.use((req, res, next) => {
   
 const createAccountLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour window
-  max: 10, // start blocking after 20 requests
+  max: 20, // start blocking after 20 requests
   message:
     "Too many accounts created from this IP, please try again after an hour"
 });
@@ -30,7 +32,7 @@ app.use('/api/auth/signup', createAccountLimiter)
 
 const loginAccountLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 min window
-  max: 10, // start blocking after 20 requests
+  max: 20, // start blocking after 20 requests
   message:
     "Too many connection attempts from this IP address, please try again after five minutes"
 });
@@ -43,8 +45,6 @@ const limiter = rateLimit({
     "Too many connection attempts from this IP address!"
 });
 app.use('/api/sauces', limiter)
-
-
 
 app.use(express.json());
 

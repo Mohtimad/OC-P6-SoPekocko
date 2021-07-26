@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-var crypto = require('crypto');
+const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const tokenConfig = require('../token-config')

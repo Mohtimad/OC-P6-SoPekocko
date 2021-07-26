@@ -18,7 +18,7 @@ router.post('/signup', [
   });
 
 router.post('/login',
-  [body('email').normalizeEmail()], (req, res, next) => next()
+  [body('email').not().isEmpty().isEmail().normalizeEmail()], (req, res, next) => next()
 );
 
 router.post('/signup', userCtrl.signup);

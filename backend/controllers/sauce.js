@@ -47,7 +47,10 @@ exports.createSauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   });
   sauce.save()
-    .then(() => res.status(201).json({ message: 'Registered object!'}))
+    .then(() => {
+      console.log('Object created by userId ' + sauce.userId)
+      res.status(201).json({ message: 'Registered object!'})
+    })
     .catch(error => res.status(400).json({ error }));
 };
 
@@ -70,12 +73,12 @@ exports.modifySauce = (req, res, next) => {
       }
     Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(() => {
-        console.log('Item edited by userId ' + req.body.userId)
+        console.log('Item edited by userId ' + sauce.userId)
         res.status(200).json({ message: 'Item changed!'})
       })
       .catch(error => res.status(400).json({ error }));
   })
-  .catch(error => res.status(500).json({ error }));
+  .catch(error => res.status(500).json({ error : 'Invalid user ID'}));
 };
 
 exports.deleteSauce = (req, res, next) => {
@@ -87,7 +90,7 @@ exports.deleteSauce = (req, res, next) => {
         console.log(`deleted images/${filename}`);
         Sauce.deleteOne({ _id: req.params.id })
           .then(() => {
-            console.log('Item deleted by userId ' + req.body.userId)
+            console.log('Item deleted by userId ' + sauce.userId)
             res.status(200).json({ message: 'Item deleted!'})
           })
           .catch(error => res.status(400).json({ error }));
